@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Music — Trending</title>
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #0f0f10;
+      --panel: #151515;
+      --muted: #bdbdbd;
+      --accent: #1db954; /* spotify green */
+      --card-shadow: rgba(0,0,0,0.6);
+      --glass: rgba(255,255,255,0.02);
+      --radius: 12px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #0b0b0c 0%, #0f0f10 100%);
+      color:#fff;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:24px;
+    }
+
+    /* container layout */
+    .app{
+      display:grid;
+      grid-template-columns: 260px 1fr;
+      gap:24px;
+      max-width:1400px;
+      margin:0 auto;
+      align-items:start;
+    }
+
+    /* sidebar */
+    .sidebar{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));
+      border-radius: var(--radius);
+      padding:22px;
+      min-height:720px;
+      box-shadow: 0 8px 24px var(--card-shadow);
+      position:sticky;
+      top:24px;
+    }
+    .logo{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-bottom:20px;
+    }
+    .logo .circle{
+      width:36px;height:36px;border-radius:50%;background:linear-gradient(45deg,#1db954,#12a86a);display:flex;align-items:center;justify-content:center;font-weight:700;color:#04220b;
+    }
+    .btn{
+      display:inline-block;
+      background:var(--panel);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:999px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      border: none;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .section-title{
+      font-weight:700;
+      margin:18px 0 8px;
+      color:#fff;
+      font-size:18px;
+    }
+    .muted{
+      color:var(--muted);
+      font-size:14px;
+    }
+    .sidebar .box{
+      background:var(--glass);
+      padding:14px;
+      border-radius:10px;
+      margin-bottom:14px;
+    }
+    .sidebar .box p{margin:0 0 8px}
+
+    .sidebar .small{
+      font-size:13px;color:var(--muted);
+    }
+
+    .lang{
+      margin-top:18px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    /* top area (main) */
+    .main{
+      min-height:720px;
+      padding:22px;
+      border-radius:var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    /* top bar */
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      margin-bottom:20px;
+    }
+    .search{
+      flex:1;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      background: #0d0d0d;
+      padding:12px 16px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .search input{
+      background:transparent;border:0;outline:none;color:#fff;font-size:15px;width:100%;
+    }
+    .controls{display:flex;gap:12px;align-items:center}
+
+    /* sections */
+    .section{
+      margin-top:18px;
+    }
+    .section .heading{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:14px;
+    }
+    .heading h2{margin:0;font-size:20px}
+    .heading a{color:var(--muted);text-decoration:none;font-size:14px}
+
+    /* trending grid */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px,1fr));
+      gap:18px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+      padding:10px;
+      border-radius:12px;
+      transition:transform .18s ease, box-shadow .18s ease;
+      cursor:default;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .card:hover{transform:translateY(-6px)}
+    .art{
+      width:100%;
+      padding-top:100%;
+      border-radius:8px;
+      background-size:cover;background-position:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .card .title{font-weight:700;font-size:14px}
+    .card .meta{color:var(--muted);font-size:13px;line-height:1.2}
+
+    .card .actions{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .play-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.02);
+      cursor:pointer;
+      font-weight:600;
+      font-size:13px;
+    }
+    .heart{
+      cursor:pointer;
+      font-size:18px;
+      opacity:0.85;
+    }
+    .heart.liked{color:var(--accent);text-shadow:0 2px 6px rgba(0,0,0,0.6)}
+
+    /* popular artists row */
+    .artists-row{
+      display:flex;
+      gap:18px;
+      overflow-x:auto;
+      padding-bottom:10px;
+      -webkit-overflow-scrolling:touch;
+    }
+    .artist{
+      min-width:120px;
+      text-align:center;
+    }
+    .artist .circle{
+      width:120px;height:120px;border-radius:50%;
+      background-size:cover;background-position:center;margin:0 auto 8px;border:4px solid rgba(255,255,255,0.03);
+    }
+    .artist .name{font-weight:700;font-size:14px}
+
+    /* small player bar at bottom */
+    .player{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:20px;
+      width:min(980px,92%);
+      background:rgba(20,20,20,0.95);
+      padding:10px 14px;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      box-shadow:0 20px 50px rgba(0,0,0,0.6);
+      z-index:100;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .player .meta{flex:1;min-width:0}
+    .player .meta .title{font-weight:700}
+    .player .meta .sub{color:var(--muted);font-size:13px}
+    .player .controls{display:flex;gap:10px;align-items:center}
+
+    /* responsive */
+    @media (max-width:980px){
+      .app{grid-template-columns: 1fr}
+      .sidebar{position:relative;top:0;min-height:0}
+      .player{width:calc(100% - 48px);left:24px;transform:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" aria-label="Sidebar">
+      <div class="logo">
+        <div class="circle">M</div>
+        <div>
+          <div style="font-weight:700">Musuc playlist</div>
+          <div class="muted" style="font-size:13px">Your library • Dark</div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div style="font-weight:700">Create your first playlist</div>
+        <p class="muted">It's easy, we'll help you</p>
+        <button class="btn" id="createPlaylist">Create playlist</button>
+      </div>
+
+      <div class="box">
+        <div style="font-weight:700">Let's find some podcasts</div>
+        <p class="muted">We'll keep you updated on new episodes</p>
+        <button class="btn" id="browsePod">Browse podcasts</button>
+      </div>
+
+      <div style="margin-top:20px">
+        <div class="small muted">Legal • Safety & Privacy Center • Privacy Policy</div>
+      </div>
+
+      <div class="lang">
+        <div class="small muted">Cookies</div>
+        <button class="btn" style="background:transparent;border:1px solid rgba(255,255,255,0.06)">English</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="topbar">
+        <div class="search" role="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M21 21l-4.35-4.35" stroke="white" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input id="searchInput" placeholder="What do you want to play?" aria-label="Search" />
+        </div>
+        <div class="controls">
+          <button class="btn">Premium</button>
+          <button class="btn">Download</button>
+        </div>
+      </div>
+
+      <section class="section">
+        <div class="heading">
+          <h2>Trending songs</h2>
+          <a href="#">Show all</a>
+        </div>
+
+        <div class="grid" id="trendingGrid">
+          <!-- Cards will be injected by JS -->
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="heading">
+          <h2>Popular artists</h2>
+          <a href="#">Show all</a>
+        </div>
+
+        <div class="artists-row" id="artistsRow">
+          <!-- Artist items injected by JS -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Player -->
+  <div class="player" id="playerBar" style="display:none">
+    <div style="width:60px;height:60px;border-radius:8px;background-size:cover;background-position:center" id="playerArt"></div>
+    <div class="meta">
+      <div class="title" id="playerTitle">Title</div>
+      <div class="sub" id="playerSub">Artist</div>
+    </div>
+    <div class="controls">
+      <button class="play-btn" id="playerToggle">Play</button>
+    </div>
+  </div>
+
+  <script>
+    // Data: songs and artists (replace with your own images and audio)
+    const demoAudio = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+
+    const songs = [
+      { id:'s1', title:'Rahein Na Rahein Hum', meta:'Sachin-Jigar, Soumyadeep Sarkar', img:'https://picsum.photos/seed/rai1/400/400', audio: demoAudio },
+      { id:'s2', title:'Oorum Blood', meta:'Sai Abhyankkar, Paal Dabba', img:'https://picsum.photos/seed/oorum/400/400', audio: demoAudio },
+      { id:'s3', title:'Tumse Behtar', meta:'Tanishk Bagchi, Arijit Singh', img:'https://picsum.photos/seed/tumse/400/400', audio: demoAudio },
+      { id:'s4', title:'Kashish', meta:'Ashish Bhatia, Omkar', img:'https://picsum.photos/seed/kash/400/400', audio: demoAudio },
+      { id:'s5', title:'Eyes Closed', meta:'JISOO, ZAYN', img:'https://picsum.photos/seed/eyes/400/400', audio: demoAudio },
+      { id:'s6', title:'Mera Hua', meta:'Annnur R Pathakk', img:'https://picsum.photos/seed/mera/400/400', audio: demoAudio },
+    ];
+
+    const artists = [
+      {name:'A.R. Rahman', img:'https://picsum.photos/seed/ar/300/300'},
+      {name:'Arijit Singh', img:'https://picsum.photos/seed/arijit/300/300'},
+      {name:'Shreya Ghoshal', img:'https://picsum.photos/seed/shreya/300/300'},
+      {name:'Badshah', img:'https://picsum.photos/seed/bad/300/300'},
+      {name:'Nucleya', img:'https://picsum.photos/seed/nuc/300/300'},
+      {name:'Drums', img:'https://picsum.photos/seed/drums/300/300'},
+    ];
+
+    // DOM refs
+    const grid = document.getElementById('trendingGrid');
+    const artistsRow = document.getElementById('artistsRow');
+    const playerBar = document.getElementById('playerBar');
+    const playerTitle = document.getElementById('playerTitle');
+    const playerSub = document.getElementById('playerSub');
+    const playerArt = document.getElementById('playerArt');
+    const playerToggle = document.getElementById('playerToggle');
+
+    // Audio element used for previews
+    const audio = new Audio();
+    audio.preload = "auto";
+    let currentSongId = null;
+
+    // load liked state from localStorage
+    const likedKey = 'mm_liked_songs_v1';
+    const likedSet = new Set(JSON.parse(localStorage.getItem(likedKey) || '[]'));
+
+    function renderSongs(list){
+      grid.innerHTML = '';
+      list.forEach(song => {
+        const c = document.createElement('div');
+        c.className = 'card';
+        c.innerHTML = `
+          <div class="art" style="background-image:url('${song.img}')" data-id="${song.id}"></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div class="title">${song.title}</div>
+            <div class="meta">${song.meta}</div>
+          </div>
+          <div class="actions" style="margin-top:auto">
+            <div class="play-btn" data-id="${song.id}" title="Play preview">▶ Play</div>
+            <div class="heart ${likedSet.has(song.id)?'liked':''}" data-id="${song.id}" title="Like">❤</div>
+          </div>
+        `;
+        // add interaction listeners
+        const playBtn = c.querySelector('.play-btn');
+        const heart = c.querySelector('.heart');
+        playBtn.addEventListener('click', () => playSong(song));
+        heart.addEventListener('click', () => toggleLike(song.id, heart));
+        grid.appendChild(c);
+      });
+    }
+
+    function renderArtists(){
+      artistsRow.innerHTML = '';
+      artists.forEach(a=>{
+        const d = document.createElement('div');
+        d.className = 'artist';
+        d.innerHTML = `
+          <div class="circle" style="background-image:url('${a.img}')"></div>
+          <div class="name">${a.name}</div>
+        `;
+        artistsRow.appendChild(d);
+      });
+    }
+
+    function toggleLike(id, el){
+      if(likedSet.has(id)){
+        likedSet.delete(id);
+        el.classList.remove('liked');
+      } else {
+        likedSet.add(id);
+        el.classList.add('liked');
+      }
+      localStorage.setItem(likedKey, JSON.stringify(Array.from(likedSet)));
+    }
+
+    function playSong(song){
+      if(currentSongId === song.id && !audio.paused){
+        // already playing -> pause
+        audio.pause();
+        playerToggle.textContent = 'Play';
+        return;
+      }
+
+      // load and play
+      audio.src = song.audio;
+      audio.currentTime = 0;
+      audio.play().catch(e => {
+        // autoplay may be blocked; show play button text but still set source
+        console.warn('Playback blocked (browser). User interaction required to hear audio.');
+      });
+
+      currentSongId = song.id;
+      playerTitle.textContent = song.title;
+      playerSub.textContent = song.meta;
+      playerArt.style.backgroundImage = `url('${song.img}')`;
+      playerBar.style.display = 'flex';
+      playerToggle.textContent = 'Pause';
+    }
+
+    // audio events
+    audio.addEventListener('play', () => playerToggle.textContent = 'Pause');
+    audio.addEventListener('pause', () => playerToggle.textContent = 'Play');
+    audio.addEventListener('ended', () => playerToggle.textContent = 'Play');
+
+    playerToggle.addEventListener('click', () => {
+      if(!audio.src) return;
+      if(audio.paused) audio.play();
+      else audio.pause();
+    });
+
+    // search
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      if(!q) renderSongs(songs);
+      else {
+        const filtered = songs.filter(s => s.title.toLowerCase().includes(q) || s.meta.toLowerCase().includes(q));
+        renderSongs(filtered);
+      }
+    });
+
+    // small helpers for buttons
+    document.getElementById('createPlaylist').addEventListener('click', ()=> alert('Create playlist — UI stub (replace with your logic)'));
+    document.getElementById('browsePod').addEventListener('click', ()=> alert('Browse podcasts — UI stub'));
+
+    // initial render
+    renderSongs(songs);
+    renderArtists();
+
+    // Accessibility: keyboard support for playing first song with Enter on highlighted play button
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === ' ' && document.activeElement && document.activeElement.classList.contains('play-btn')){
+        e.preventDefault();
+        document.activeElement.click();
+      }
+    });
+  </script>
+</body>
+</html>
